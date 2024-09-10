@@ -1,11 +1,12 @@
-#include <crossdb.h>
+#include "../../include/crossdb.h"
 
 int main (int argc, char **argv)
 {
 	xdb_res_t	*pRes;
 	xdb_row_t	*pRow;
 
-	xdb_conn_t	*pConn = xdb_open (argc > 1 ? argv[1] : ":memory:");
+	// xdb_conn_t	*pConn = xdb_open (argc > 1 ? argv[1] : ":memory:");
+	xdb_conn_t	*pConn = xdb_open ("example");
 	XDB_CHECK (NULL != pConn, printf ("failed to create DB\n"); return -1;);
 
 	// Create Table
@@ -15,6 +16,9 @@ int main (int argc, char **argv)
 	XDB_RESCHK(pRes, printf ("Can't create table teacher\n"); goto error;);
 	pRes = xdb_exec (pConn, "CREATE TABLE IF NOT EXISTS book (id INT PRIMARY KEY, name CHAR(64), author CHAR(32), count INT, INDEX (name))");
 	XDB_RESCHK(pRes, printf ("Can't create table book\n"); goto error;);
+
+	// pRes = xdb_exec (pConn, "CREATE INDEX idx_name ON student (age)");
+	// XDB_RESCHK(pRes, printf ("Can't create index age on student\n"); goto error;);
 
 	// clean table
 	pRes = xdb_exec (pConn, "DELETE FROM student");
@@ -34,7 +38,7 @@ int main (int argc, char **argv)
 	XDB_RESCHK(pRes, printf ("Can't insert table book\n"); goto error;);
 
 	// Select
-	pRes = xdb_exec (pConn, "SELECT * from student");
+	pRes = xdb_exec (pConn, "SELECT * from student  where id > 2");
 	printf ("=== Select all %d rows\n", (int)pRes->row_count);
 	while (NULL != (pRow = xdb_fetch_row (pRes))) {
 		xdb_print_row (pRes->col_meta, pRow, 0);
@@ -169,7 +173,7 @@ int main (int argc, char **argv)
 
 	// Embedded shell
 	printf ("\n=== Enter interactive embedded shell\n");
-	xdb_exec (pConn, "SHELL");
+	// xdb_exec (pConn, "SHELL");
 
 error:
 	xdb_close (pConn);
