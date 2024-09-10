@@ -12,7 +12,7 @@
 #undef XDB_STATIC
 #define XDB_STATIC static
 
-#include "../include/crossdb.h"
+#include "crossdb.h"
 #include "core/xdb_cfg.h"
 #include "lib/xdb_lib.c"
 #include "core/xdb_common.h"
@@ -37,6 +37,7 @@
 #endif
 
 #include "parser/xdb_parser.c"
+#include "parser/xdb_stmt_create.c"
 #include "core/xdb_store.c"
 #include "core/xdb_sysdb.c"
 #include "core/xdb_db.c"

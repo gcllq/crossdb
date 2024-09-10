@@ -9,7 +9,8 @@
 * file, You can obtain one at https://mozilla.org/MPL/2.0/.
 ******************************************************************************/
 
-XDB_STATIC int 
+#include "xdb_sql.h"
+XDB_STATIC int
 xdb_sql_set (xdb_stmt_set_t *pStmt)
 {
 	xdb_conn_t		*pConn = pStmt->pConn;
@@ -308,6 +309,61 @@ xdb_exec2 (xdb_conn_t *pConn, const char *sql, int len)
 	pConn->status = pRes->status;
 	return pRes;
 }
+
+XDB_STATIC xdb_stmt_t*
+	xdb_parse_stmt_create(xdb_conn_t *pConn, cdf_stmt_type type,...) {
+	va_list ap;
+	// va_start (ap, pConn);
+	va_start (ap, type);
+	xdb_stmt_t *stmt = xdb_stmt_common_create(pConn, type, ap);
+	va_end (ap);
+	return stmt;
+}
+
+
+xdb_res_t *
+xdb_createdb(xdb_conn_t *pConn, const char *dbName) {
+	xdb_stmt_t *stmt = xdb_parse_stmt_create(pConn, CREATE_DB);
+	return xdb_exec_by_stmt(stmt);
+}
+
+xdb_res_t *
+cdf_create_table(xdb_conn_t *pConn, ...) {
+	va_list ap;
+	va_start (ap, pConn);
+	xdb_stmt_t *stmt = xdb_parse_stmt_create(pConn, CREATE_TBL, ap);
+	va_end (ap);
+	return xdb_exec_by_stmt(stmt);
+}
+
+xdb_res_t *
+xdb_exec_by_stmt(xdb_stmt_t *stmt) {
+	xdb_assert(NULL != stmt);
+	xdb_res_t	*pRes;
+	xdb_conn_t		*pConn = stmt->pConn;
+
+	{
+		if (xdb_likely(NULL != stmt)) {
+			pRes = xdb_stmt_exec (stmt);
+			if (pRes->row_count) {
+				xdb_queryRes_t *pQueryRes = (void*)pRes - XDB_OFFSET(xdb_queryRes_t, res);
+				pQueryRes->pStmt = (xdb_stmt_select_t*)stmt;
+			} else {
+				xdb_stmt_free (stmt);
+			}
+		} else {
+			pRes->stmt_type = 0;
+		}
+		if (NULL != pConn->pNxtSql) {
+			pRes->status |= XDB_STATUS_MORE_RESULTS;
+		}
+	}
+
+	// copy server/stmt status
+	pConn->status = pRes->status;
+	return pRes;
+}
+
 
 xdb_res_t*
 xdb_exec (xdb_conn_t *pConn, const char *sql)

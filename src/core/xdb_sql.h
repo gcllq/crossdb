@@ -13,7 +13,27 @@
 #define __XDB_SQL_H__
 
 #define XDB_ROW_BUF_SIZE	(1024*1024)
-
+typedef enum {
+    CREATE_DB,
+    DROP_DB,
+    CREATE_TBL,
+    DROP_TBL,
+    CREATE_IDX,
+    DROP_IDX,
+    INSERT_ROW,
+    DELETE_ROW,
+    UPDATE_ROW,
+    SELECT_ROW,
+    SET_ROW,
+    BACKUP_DB,
+    RESTORE_DB,
+    SHOW_DB,
+    SHOW_TBL,
+    SHOW_IDX,
+    SHOW_ROW,
+    SHOW_COL,
+    SHOW_STMT,
+} cdf_stmt_type;
 
 XDB_STATIC int 
 xdb_exec_out (xdb_conn_t *pConn, const char *sql, int len);
