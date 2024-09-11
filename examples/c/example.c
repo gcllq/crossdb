@@ -1,16 +1,24 @@
 #include "../../include/crossdb.h"
-
+struct student {
+	int32_t		id;
+	char	name[16];
+	int32_t		age;
+	char	class[16];
+	float	score;
+	char	info[255];
+};
+typedef struct student student;
 int main (int argc, char **argv)
 {
 	xdb_res_t	*pRes;
 	xdb_row_t	*pRow;
 
-	// xdb_conn_t	*pConn = xdb_open (argc > 1 ? argv[1] : ":memory:");
-	xdb_conn_t	*pConn = xdb_open ("example");
+	xdb_conn_t	*pConn = xdb_open (argc > 1 ? argv[1] : ":memory:");
+	// xdb_conn_t	*pConn = xdb_open ("example");
 	XDB_CHECK (NULL != pConn, printf ("failed to create DB\n"); return -1;);
 
 	// Create Table
-	pRes = xdb_exec (pConn, "CREATE TABLE IF NOT EXISTS student (id INT PRIMARY KEY, name CHAR(16), age INT, class CHAR(16), score FLOAT, info CHAR(255))");
+	pRes = xdb_exec (pConn, "CREATE TABLE IF NOT EXISTS student (id INT PRIMARY KEY, name CHAR(16), age INT, class CHAR(16), score FLOAT, info CHAR(255), INDEX (age))");
 	XDB_RESCHK(pRes, printf ("Can't create table student\n"); goto error;);
 	pRes = xdb_exec (pConn, "CREATE TABLE IF NOT EXISTS teacher (id INT PRIMARY KEY, name CHAR(16), age INT, info CHAR(255), INDEX (name))");
 	XDB_RESCHK(pRes, printf ("Can't create table teacher\n"); goto error;);
@@ -24,6 +32,22 @@ int main (int argc, char **argv)
 	pRes = xdb_exec (pConn, "DELETE FROM student");
 	pRes = xdb_exec (pConn, "DELETE FROM teacher");
 	pRes = xdb_exec (pConn, "DELETE FROM book");
+
+	//Insert by self stmt
+	student data = {10,"jack1",100,"3-11",90, "I am a student."};
+	void * arr [] = {&data};
+	cdf_insert_data(pConn, "student", 1, arr);
+
+	//select after self insert
+	pRes = xdb_exec (pConn, "SELECT * from student  where age = 100");
+	printf ("=== Select self rows all %d rows\n", (int)pRes->row_count);
+	while (NULL != (pRow = xdb_fetch_row (pRes))) {
+		xdb_print_row (pRes->col_meta, pRow, 0);
+		printf ("\n");
+		printf ("=== Select self name=== %d \n", ((student*)pRes->row_data)->id);
+	}
+	xdb_free_result (pRes);
+
 
 	// Insert
 	pRes = xdb_exec (pConn, "INSERT INTO student (id,name,age,class,score) VALUES (1,'jack',10,'3-1',90),(2,'tom',11,'2-5',91),(3,'jack',11,'1-6',92),(4,'rose',10,'4-2',90),(5,'tim',10,'3-1',95)");

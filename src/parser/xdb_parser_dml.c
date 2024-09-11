@@ -154,8 +154,8 @@ xdb_parse_insert (xdb_conn_t* pConn, xdb_token_t *pTkn, bool bPStmt)
 					break;
 				case XDB_TYPE_CHAR:
 					XDB_EXPECT ((XDB_TOK_STR == type) && (pTkn->tk_len <= pFld->fld_len), XDB_E_STMT, "Expect string <= %d", pFld->fld_len);
-					*(uint16_t*)(pRow+pFld->fld_off-2) = pTkn->tk_len;
-					memcpy (pRow+pFld->fld_off, pTkn->token, pTkn->tk_len+1);
+					// *(uint16_t*)(pRow+pFld->fld_off-2) = pTkn->tk_len;
+					memcpy (pRow+pFld->fld_off, pTkn->token, pTkn->tk_len);
 					//xdb_dbgprint ("%s %s\n", pFld->fld_name, pTkn->token);
 					break;
 				}

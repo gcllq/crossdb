@@ -180,11 +180,14 @@ xdb_curdb (xdb_conn_t* pConn);
 /**************************************
  SQL
 ***************************************/
-	xdb_res_t *
-	xdb_createdb(xdb_conn_t *pConn, const char *dbName);
+// 	xdb_res_t *
+// 	xdb_createdb(xdb_conn_t *pConn, const char *dbName);
+//
+// 	xdb_res_t *
+// cdf_create_table(xdb_conn_t *pConn, ...);
 
-	xdb_res_t *
-cdf_create_table(xdb_conn_t *pConn, ...);
+xdb_res_t *
+cdf_insert_data(xdb_conn_t *pConn, const char *tblName, int count, void *dataArr);
 	xdb_res_t *
 	xdb_exec_by_stmt(xdb_stmt_t *stmt);
 

@@ -26,6 +26,42 @@ xdb_alloc_offset (xdb_tblm_t *pTblm, uint64_t types, int len)
 			}
 			pTblm->row_size += pFld->fld_len + extra;
 		}
+		pTblm->row_size += pFld->fld_len + extra;
+	}
+}
+
+XDB_STATIC void
+cdf_all_offset (xdb_tblm_t *pTblm)
+{
+	for (int i = 0; i < pTblm->fld_count; ++i) {
+		xdb_field_t *pFld = &pTblm->pFields[i];
+		if (pFld->fld_len == 0) {
+			switch (pFld->fld_type) {
+				case XDB_TYPE_BIGINT:
+					case XDB_TYPE_DOUBLE:
+					pFld->fld_len = 8;
+					break;
+				case XDB_TYPE_INT:
+				case XDB_TYPE_FLOAT:
+					pFld->fld_len = 4;
+					break;
+				case XDB_TYPE_CHAR:
+					case XDB_TYPE_SMALLINT:
+					pFld->fld_len = 2;
+					break;
+				case XDB_TYPE_TINYINT:
+					pFld->fld_len = 1;
+					break;
+			}
+		}
+
+		int extra = 0;
+		// if (pFld->fld_type == XDB_TYPE_CHAR) {
+		// 	pFld->fld_off += 2;
+		// 	extra = 2 + 1; // len(2B) + '\0'
+		// }
+		pFld->fld_off = pTblm->row_size;
+		pTblm->row_size += pFld->fld_len + extra;
 	}
 }
 
@@ -90,11 +126,12 @@ xdb_create_table (xdb_stmt_tbl_t *pStmt)
 	pTblm->row_size = pStmt->row_size;
 	if (pStmt->row_size < 1) {
 		pTblm->row_size = 0;
-		xdb_alloc_offset (pTblm, (1LL<<XDB_TYPE_BIGINT) | (1LL<<XDB_TYPE_DOUBLE), 8);
-		xdb_alloc_offset (pTblm, (1LL<<XDB_TYPE_INT) | (1LL<<XDB_TYPE_FLOAT), 4);
-		xdb_alloc_offset (pTblm, (1<<XDB_TYPE_CHAR) | (1<<XDB_TYPE_SMALLINT), 2);
-		xdb_alloc_offset (pTblm, (1<<XDB_TYPE_TINYINT), 1);
+		// xdb_alloc_offset (pTblm, (1LL<<XDB_TYPE_BIGINT) | (1LL<<XDB_TYPE_DOUBLE), 8);
+		// xdb_alloc_offset (pTblm, (1LL<<XDB_TYPE_INT) | (1LL<<XDB_TYPE_FLOAT), 4);
+		// xdb_alloc_offset (pTblm, (1<<XDB_TYPE_CHAR) | (1<<XDB_TYPE_SMALLINT), 2);
+		// xdb_alloc_offset (pTblm, (1<<XDB_TYPE_TINYINT), 1);
 		// TBD row_size need to add bitmap
+		cdf_all_offset(pTblm);
 	}
 
 	// add fast pointer access
