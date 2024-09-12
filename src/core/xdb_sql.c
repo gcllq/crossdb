@@ -349,6 +349,12 @@ cdf_select_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataAr
 }
 
 xdb_res_t *
+cdf_delete_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr) {
+	xdb_stmt_t *stmt = cdf_parse_stmt_create(pConn, DELETE_ROW, tblName, count, dataArr);
+	return cdf_exec_by_stmt(stmt);
+}
+
+xdb_res_t *
 cdf_exec_by_stmt(xdb_stmt_t *stmt) {
 	xdb_assert(NULL != stmt);
 	xdb_res_t	*pRes;

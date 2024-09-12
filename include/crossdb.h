@@ -221,6 +221,9 @@ cdf_exec_by_stmt(xdb_stmt_t *stmt);
 xdb_res_t *
 cdf_select_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr);
 
+xdb_res_t *
+cdf_delete_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr);
+
 xdb_res_t*
 xdb_exec (xdb_conn_t *pConn, const char *sql);
 

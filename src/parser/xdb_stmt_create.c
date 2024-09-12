@@ -254,6 +254,46 @@ error:
     return NULL;
 }
 
+XDB_STATIC xdb_stmt_t*
+    cdf_delete_stmt(xdb_conn_t *pConn, bool bPStmt, char *tableName, int count, cdf_filter_t ** arr) {
+
+    xdb_stmt_select_t *pStmt;
+
+    if (xdb_unlikely (bPStmt)) {
+        pStmt = xdb_malloc (sizeof (*pStmt));
+        XDB_EXPECT(NULL != pStmt, XDB_E_MEMORY, "Run out of memory");
+    } else {
+        pStmt = &pConn->stmt_union.select_stmt;
+    }
+    pStmt->stmt_type = XDB_STMT_DELETE;
+    pStmt->pSql = NULL;
+
+    xdb_init_where_stmt (pStmt);
+
+
+    xdb_token_t pTknObj = {};
+    pTknObj.tk_type = XDB_TOK_ID;
+    pTknObj.token = tableName;
+    xdb_token_t *pTkn = &pTknObj;
+    xdb_token_type type = XDB_TOK_ID;
+    XDB_PARSE_DBTBLNAME();
+
+    if (xdb_unlikely (pStmt->pTblm->pDbm->bSysDb)) {
+        XDB_EXPECT (pConn == s_xdb_sysdb_pConn, XDB_E_CONSTRAINT, "Can't delete form table '%s' in system database", XDB_OBJ_NAME(pStmt->pTblm));
+    }
+
+    int parse_where = cdf_parse_where(pConn, pStmt, count, arr);
+    if(parse_where != 0) {
+        printf("parse where error\n");
+    }
+
+    return (xdb_stmt_t*)pStmt;
+
+    error:
+        xdb_stmt_free ((xdb_stmt_t*)pStmt);
+    return NULL;
+}
+
 XDB_STATIC xdb_stmt_t *
 cdf_stmt_common_create(xdb_conn_t *pConn, cdf_stmt_type type, va_list ap) {
     switch (type) {
@@ -266,8 +306,12 @@ cdf_stmt_common_create(xdb_conn_t *pConn, cdf_stmt_type type, va_list ap) {
         }
         case UPDATE_ROW:
             return NULL;
-        case DELETE_ROW:
-            return NULL;
+        case DELETE_ROW: {
+            char *tab = va_arg(ap, char*);
+            int count = va_arg(ap, int);
+            cdf_filter_t **arr = va_arg(ap, cdf_filter_t**);
+            return cdf_delete_stmt(pConn, false, tab, count, arr);
+        }
         case SELECT_ROW: {
             char *tab = va_arg(ap, char*);
             return cdf_select_stmt(pConn, false, tab, ap);
