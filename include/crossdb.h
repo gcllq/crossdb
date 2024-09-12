@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
+#include "../src/parser/xdb_token.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,7 +26,32 @@ extern "C" {
 /******************************************************************************
 	CrossDB Error
 ******************************************************************************/
+	typedef enum cdf_op_t {
+		CDF_OP_NONE,
+		CDF_OP_EQ 	= XDB_TOK_EQ,
+		CDF_OP_LT 	= XDB_TOK_LT, 	// <
+		CDF_OP_LE 	= XDB_TOK_LE, 	// <=
+		CDF_OP_GT 	= XDB_TOK_GT, 	// >
+		CDF_OP_GE 	= XDB_TOK_GE, 	// >=
+		CDF_OP_NE 	= XDB_TOK_NE, 	// != <>
+		CDF_OPLOG_MAX	= CDF_OP_NE,
+		CDF_OP_ADD 	= XDB_TOK_ADD,
+		CDF_OP_SUB 	= XDB_TOK_SUB,
+		CDF_OP_MUL 	= XDB_TOK_MUL,
+		CDF_OP_DIV 	= XDB_TOK_DIV,
+	} cdf_op_t;
+typedef struct cdf_str_t {
+	char *str;
+	int len;
+} cdf_str_t;
 
+typedef struct cdf_filter_t {
+	char *fidldName;
+	xdb_token_type type;
+	// int fLen;
+	cdf_op_t op;
+	cdf_str_t val;
+} cdf_filter_t;
 typedef enum {
 	XDB_OK,
 	XDB_ERROR,
@@ -68,7 +94,7 @@ typedef enum {
 	XDB_TYPE_VCHAR      = 14, // varied-length string(at most 65535 byte)
 	XDB_TYPE_VBINARY    = 15, // varied-length binary(at most 65535 byte)
 	// MAC,IPv4,IPv6,CIDR
-	//XDB_TYPE_DECIMAL    = 16, // TBD decimal
+	XDB_TYPE_DECIMAL    = 16, // TBD decimal
 	//XDB_TYPE_GEOMETRY   = 17, // TBD geometry
 	//XDB_TYPE_JSON 	    = 18, // TBD json string
 	//XDB_TYPE_DYNAMIC	= 20, 
@@ -187,9 +213,13 @@ xdb_curdb (xdb_conn_t* pConn);
 // cdf_create_table(xdb_conn_t *pConn, ...);
 
 xdb_res_t *
-cdf_insert_data(xdb_conn_t *pConn, const char *tblName, int count, void *dataArr);
-	xdb_res_t *
-	xdb_exec_by_stmt(xdb_stmt_t *stmt);
+cdf_insert_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr);
+
+xdb_res_t *
+cdf_exec_by_stmt(xdb_stmt_t *stmt);
+
+xdb_res_t *
+cdf_select_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr);
 
 xdb_res_t*
 xdb_exec (xdb_conn_t *pConn, const char *sql);

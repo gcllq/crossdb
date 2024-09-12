@@ -310,13 +310,13 @@ xdb_exec2 (xdb_conn_t *pConn, const char *sql, int len)
 	return pRes;
 }
 
-XDB_STATIC xdb_stmt_t*
-	cdf_parse_stmt_create(xdb_conn_t *pConn, cdf_stmt_type type,...) {
+XDB_STATIC xdb_stmt_t *
+cdf_parse_stmt_create(xdb_conn_t *pConn, cdf_stmt_type type, ...) {
 	va_list ap;
 	// va_start (ap, pConn);
-	va_start (ap, type);
+	va_start(ap, type);
 	xdb_stmt_t *stmt = cdf_stmt_common_create(pConn, type, ap);
-	va_end (ap);
+	va_end(ap);
 	return stmt;
 }
 
@@ -337,13 +337,19 @@ XDB_STATIC xdb_stmt_t*
 // }
 
 xdb_res_t *
-cdf_insert_data(xdb_conn_t *pConn, const char *tblName, int count, void*dataArr) {
-		xdb_stmt_t *stmt = cdf_parse_stmt_create(pConn, INSERT_ROW, tblName, count, dataArr);
-	return xdb_exec_by_stmt(stmt);
+cdf_insert_data(xdb_conn_t *pConn, const char *tblName, int count, void**dataArr) {
+	xdb_stmt_t *stmt = cdf_parse_stmt_create(pConn, INSERT_ROW, tblName, count, dataArr);
+	return cdf_exec_by_stmt(stmt);
 }
 
 xdb_res_t *
-xdb_exec_by_stmt(xdb_stmt_t *stmt) {
+cdf_select_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr) {
+	xdb_stmt_t *stmt = cdf_parse_stmt_create(pConn, SELECT_ROW, tblName, count, dataArr);
+	return cdf_exec_by_stmt(stmt);
+}
+
+xdb_res_t *
+cdf_exec_by_stmt(xdb_stmt_t *stmt) {
 	xdb_assert(NULL != stmt);
 	xdb_res_t	*pRes;
 	xdb_conn_t		*pConn = stmt->pConn;

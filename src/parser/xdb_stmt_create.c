@@ -90,66 +90,6 @@ cdf_insert_stmt(xdb_conn_t *pConn, bool bPStmt, char *tableName, int count, void
         pStmt->row_offset[pStmt->row_count++] = offset;
         // memcpy(pRow, currRow, pTblm->row_size);
 
-        int fld_seq = 0;
-        // for (int j = 0; j < pStmt->fld_count; ++j) {
-        //     type = XDB_TOK_NUM;
-        //     int fld_id = bColList ? pStmt->fld_list[fld_seq] : fld_seq;
-        //     XDB_EXPECT(++fld_seq <= pStmt->fld_count, XDB_E_STMT, "Too many values");
-        //     xdb_field_t *pFld = &pTblm->pFields[fld_id];
-        //
-        //     if (type <= XDB_TOK_NUM) {
-        //         switch (pFld->fld_type) {
-        //             case XDB_TYPE_INT:
-        //                 // XDB_EXPECT((XDB_TOK_NUM == type), XDB_E_STMT, "Expect number");
-        //                 // *(int32_t *) (pRow + pFld->fld_off) = *(int32_t*)(currRow + pFld->fld_off);
-        //                 *(int32_t *) (pRow + pFld->fld_off) = *(int32_t*)(currRow + pFld->fld_off);
-        //             //xdb_dbgprint ("%s %d\n", pFld->fld_name, vi32);
-        //                 break;
-        //             case XDB_TYPE_BIGINT:
-        //                 // XDB_EXPECT((XDB_TOK_NUM == type), XDB_E_STMT, "Expect number");
-        //                 *(int64_t *) (pRow + pFld->fld_off) =  *(int64_t*)(currRow + pFld->fld_off);
-        //             //xdb_dbgprint ("%s %d\n", pFld->fld_name, vi32);
-        //                 break;
-        //             case XDB_TYPE_TINYINT:
-        //                 // XDB_EXPECT((XDB_TOK_NUM == type), XDB_E_STMT, "Expect number");
-        //                 *(int8_t *) (pRow + pFld->fld_off) =  *(int8_t *) (currRow + pFld->fld_off);
-        //             //xdb_dbgprint ("%s %d\n", pFld->fld_name, vi32);
-        //                 break;
-        //             case XDB_TYPE_SMALLINT:
-        //                 // XDB_EXPECT((XDB_TOK_NUM == type), XDB_E_STMT, "Expect number");
-        //                 *(int16_t *) (pRow + pFld->fld_off) = *(int16_t *) (currRow + pFld->fld_off);
-        //             //xdb_dbgprint ("%s %d\n", pFld->fld_name, vi32);
-        //                 break;
-        //             case XDB_TYPE_FLOAT:
-        //                 // XDB_EXPECT((XDB_TOK_NUM == type), XDB_E_STMT, "Expect number");
-        //                 *(float *) (pRow + pFld->fld_off) = *(float *) (currRow + pFld->fld_off);
-        //             //xdb_dbgprint ("%s %d\n", pFld->fld_name, vi32);
-        //                 break;
-        //             case XDB_TYPE_DOUBLE:
-        //                 // XDB_EXPECT((XDB_TOK_NUM == type), XDB_E_STMT, "Expect number");
-        //                 *(double *) (pRow + pFld->fld_off) =  *(double *) (currRow + pFld->fld_off);
-        //             //xdb_dbgprint ("%s %d\n", pFld->fld_name, vi32);
-        //                 break;
-        //             case XDB_TYPE_CHAR:
-        //                 // XDB_EXPECT((XDB_TOK_STR == type) && (pTkn->tk_len <= pFld->fld_len), XDB_E_STMT,
-        //                 //            "Expect string <= %d", pFld->fld_len);
-        //                 // *(uint16_t *) (pRow + pFld->fld_off - 2) = pTkn->tk_len;
-        //                 memcpy(pRow + pFld->fld_off, currRow + pFld->fld_off, pFld->fld_len);
-        //             //xdb_dbgprint ("%s %s\n", pFld->fld_name, pTkn->token);
-        //                 break;
-        //             default: break;
-        //         }
-        //
-        //     } else if (XDB_TOK_QM == type) {
-        //         pStmt->pBindRow[pStmt->bind_count] = pRow;
-        //         pStmt->pBind[pStmt->bind_count++] = pFld;
-        //     } else {
-        //         break;
-        //     }
-        //
-        //
-        // }
-
         memcpy(pRow, currRow, pTblm->row_size);
         offset += pTblm->row_size;
     }
@@ -160,6 +100,159 @@ error:
     return NULL;
 }
 
+XDB_STATIC int
+cdf_parse_where(xdb_conn_t *pConn, xdb_stmt_select_t *pStmt, int count, cdf_filter_t **cdf_filter_arr) {
+    uint8_t bmp[8];
+    xdb_tblm_t *pTblm = pStmt->pTblm;
+    memset(bmp, 0, sizeof(bmp));
+    xdb_token_type type;
+    xdb_token_type vtype;
+    int vlen, flen;
+    xdb_op_t op;
+    char *pVal, *pFldName;
+
+    //处理每个字段
+    for (int i = 0; i < count; ++i) {
+        cdf_filter_t *currFilter = cdf_filter_arr[i];
+        pFldName = currFilter->fidldName;
+        flen = strlen(pFldName);
+        op = currFilter->op;
+        vtype = currFilter->type;
+        pVal = currFilter->val.str;
+        vlen  = currFilter->val.len;
+
+        int fld_id = xdb_find_field (pStmt->pTblm, pFldName, flen);
+        xdb_filter_t *pFilter = &pStmt->filters[pStmt->filter_count];
+        pStmt->pFilters[pStmt->filter_count++] = pFilter;
+        //pFilter->fld_off	= pField->fld_off;
+        //pFilter->fld_type	= pField->fld_type;
+        xdb_field_t *pField = &pStmt->pTblm->pFields[fld_id];
+        pFilter->pField = pField;
+
+        if (xdb_likely (XDB_OP_EQ == op)) {
+            bmp[fld_id>>3] |= (1<<(fld_id&7));
+        }
+        pFilter->cmp_op = op;
+
+        if (xdb_unlikely (XDB_TOK_QM == vtype)) {
+            pFilter->val.fld_type = pField->fld_type;
+            pFilter->val.val_type = pField->sup_type;
+            pStmt->pBind[pStmt->bind_count++] = &pFilter->val;
+        } else {
+            switch (pField->fld_type) {
+                case XDB_TYPE_INT:
+                case XDB_TYPE_BIGINT:
+                case XDB_TYPE_TINYINT:
+                case XDB_TYPE_SMALLINT:
+                    XDB_EXPECT (XDB_TOK_NUM == vtype, XDB_E_STMT, "Expect Value");
+                pFilter->val.ival = atoll (pVal);
+                pFilter->val.val_type = XDB_TYPE_BIGINT;
+                //xdb_dbgprint ("%s = %d\n", pField->fld_name.str, pFilter->val.ival);
+                break;
+                case XDB_TYPE_CHAR:
+                    XDB_EXPECT (XDB_TOK_STR == vtype, XDB_E_STMT, "Expect Value");
+                pFilter->val.str.len = vlen;
+                pFilter->val.str.str = pVal;
+                pFilter->val.val_type = XDB_TYPE_CHAR;
+                //xdb_dbgprint ("%s = %s\n", pField->fld_name.str, pFilter->val.str.str);
+                break;
+                case XDB_TYPE_FLOAT:
+                case XDB_TYPE_DOUBLE:
+                    XDB_EXPECT (XDB_TOK_NUM == vtype, XDB_E_STMT, "Expect Value");
+                pFilter->val.fval = atof (pVal);
+                pFilter->val.val_type = XDB_TYPE_DOUBLE;
+                //xdb_dbgprint ("%s = %d\n", pField->fld_name.str, pFilter->val.ival);
+                break;
+                default:break;
+            }
+        }
+    }
+
+    //索引判断
+    int fid;
+    for (int i = 0; i < XDB_OBJM_COUNT(pTblm->idx_objm); ++i) {
+        xdb_idxm_t *pIdxm = XDB_OBJM_GET(pTblm->idx_objm, pTblm->idx_order[i]);
+        if (pStmt->filter_count < pIdxm->fld_count) {
+            continue;
+        }
+        for (fid = 0 ; fid < pIdxm->fld_count; ++fid) {
+            uint16_t fld_id = pIdxm->pFields[fid]->fld_id;
+            if (!(bmp[fld_id>>3] & (1<<(fld_id&7)))) {
+                break;
+            }
+        }
+        if (fid == pIdxm->fld_count) {
+            //xdb_dbglog ("use index %s\n", XDB_OBJ_NAME(pIdxm));
+            pStmt->pIdxm = pIdxm;
+            int 		idx_id = XDB_OBJ_ID(pIdxm);
+            for (fid = 0; fid < pStmt->filter_count; ++fid) {
+                xdb_filter_t *pFltr = &pStmt->filters[fid];
+                int idx_fid = pFltr->pField->idx_fid[idx_id];
+                if (idx_fid >= 0) {
+                    // matched in index
+                    pStmt->pIdxVals[idx_fid] = &pFltr->val;
+                } else {
+                    // extra filters
+                    pStmt->pIdxFlts[pStmt->idx_flt_cnt++] = pFltr;
+                }
+            }
+            break;
+        }
+    }
+
+    return 0;
+    error:
+    return -1;
+}
+
+
+XDB_STATIC xdb_stmt_t *
+cdf_select_stmt(xdb_conn_t *pConn, bool bPStmt, char *tableName, va_list ap) {
+    int rc;
+    xdb_stmt_select_t *pStmt;
+    // xdb_value_t *pVal;
+    // xdb_value_t *pVal1;
+
+    if (xdb_unlikely(bPStmt)) {
+        pStmt = xdb_malloc(sizeof (*pStmt));
+    } else {
+        pStmt = &pConn->stmt_union.select_stmt;
+    }
+
+    pStmt->stmt_type = XDB_STMT_SELECT;
+    pStmt->pSql = NULL;
+    pStmt->meta_size = 0; // no alloc
+    pStmt->pTblm = NULL;
+
+    xdb_init_where_stmt(pStmt);
+
+    // [db_name.]tbl_name
+    xdb_token_t pTknObj = {};
+    pTknObj.tk_type = XDB_TOK_ID;
+    pTknObj.token = tableName;
+    xdb_token_t *pTkn = &pTknObj;
+    xdb_token_type type = XDB_TOK_ID;
+    XDB_PARSE_DBTBLNAME();
+
+    xdb_tblm_t *pTblm = pStmt->pTblm;
+
+    pStmt->pMeta = pTblm->pMeta;
+    pStmt->col_count = pTblm->pMeta->col_count;
+    pStmt->meta_size = 0;
+
+    //处理where条件
+    int count = va_arg(ap, int);
+    cdf_filter_t **arr = va_arg(ap, cdf_filter_t **);
+    int parse_where = cdf_parse_where(pConn, pStmt, count, arr);
+    if(parse_where != 0) {
+        printf("parse where error\n");
+    }
+    return (xdb_stmt_t *) pStmt;
+
+error:
+    xdb_stmt_free((xdb_stmt_t *) pStmt);
+    return NULL;
+}
 
 XDB_STATIC xdb_stmt_t *
 cdf_stmt_common_create(xdb_conn_t *pConn, cdf_stmt_type type, va_list ap) {
@@ -171,12 +264,17 @@ cdf_stmt_common_create(xdb_conn_t *pConn, cdf_stmt_type type, va_list ap) {
             xdb_stmt_t *res = cdf_insert_stmt(pConn, false, tab, count, arr);
             return res;
         }
-
         case UPDATE_ROW:
-        case DELETE_ROW:
-        case SELECT_ROW:
             return NULL;
-        default: return NULL;
+        case DELETE_ROW:
+            return NULL;
+        case SELECT_ROW: {
+            char *tab = va_arg(ap, char*);
+            return cdf_select_stmt(pConn, false, tab, ap);
+        }
+        default: {
+            return NULL;
+        }
     }
     return NULL;
 }

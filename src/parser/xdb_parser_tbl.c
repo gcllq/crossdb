@@ -45,6 +45,9 @@ xdb_parse_field (xdb_conn_t* pConn, xdb_token_t *pTkn, xdb_stmt_tbl_t *pStmt)
 	} else if (0 == strcasecmp (pTkn->token, "DOUBLE")) {
 		pFld->fld_type = XDB_TYPE_DOUBLE;
 		pFld->sup_type = XDB_TYPE_DOUBLE;
+	} else if (0 == strcasecmp (pTkn->token, "DECIMAL")) {
+		pFld->fld_type = XDB_TYPE_DECIMAL;
+		pFld->sup_type = XDB_TYPE_DECIMAL;
 	} else {
 		XDB_EXPECT (0, XDB_E_STMT, "unkown data type '%s'", pTkn->token);
 	}

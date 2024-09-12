@@ -49,6 +49,9 @@ cdf_all_offset (xdb_tblm_t *pTblm)
 					case XDB_TYPE_SMALLINT:
 					pFld->fld_len = 2;
 					break;
+				case XDB_TYPE_DECIMAL:
+					pFld->fld_len = 16;
+					break;
 				case XDB_TYPE_TINYINT:
 					pFld->fld_len = 1;
 					break;

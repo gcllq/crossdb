@@ -1,4 +1,8 @@
-#include "../../include/crossdb.h"
+
+
+#include "crossdb.h"
+
+
 struct student {
 	int32_t		id;
 	char	name[16];
@@ -44,10 +48,21 @@ int main (int argc, char **argv)
 	while (NULL != (pRow = xdb_fetch_row (pRes))) {
 		xdb_print_row (pRes->col_meta, pRow, 0);
 		printf ("\n");
-		printf ("=== Select self name=== %d \n", ((student*)pRes->row_data)->id);
+		printf ("=== Select self name=== %s \n", ((student*)pRow[0])->name);
 	}
 	xdb_free_result (pRes);
 
+
+	//select by self stmt
+	cdf_filter_t filter = {"age", XDB_TOK_NUM,  CDF_OP_EQ, {"100", 3}};
+	cdf_filter_t * filterArr1 [] = {&filter};
+	pRes = cdf_select_data(pConn, "student", 1, (void**)filterArr1);
+	while (NULL != (pRow = xdb_fetch_row (pRes))) {
+		xdb_print_row (pRes->col_meta, pRow, 0);
+		printf ("\n");
+		printf ("=== Select self1 name=== %s \n", ((student*)pRow[0])->name);
+	}
+	xdb_free_result (pRes);
 
 	// Insert
 	pRes = xdb_exec (pConn, "INSERT INTO student (id,name,age,class,score) VALUES (1,'jack',10,'3-1',90),(2,'tom',11,'2-5',91),(3,'jack',11,'1-6',92),(4,'rose',10,'4-2',90),(5,'tim',10,'3-1',95)");
