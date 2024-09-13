@@ -5,13 +5,19 @@
 #include <random>
 
 #include "../include/crossdb.h"
+// #include "../src/parser/xdb_stmt.h"
 
 
 int id = 0;
 bool init = false;
 std::mutex ml;
 xdb_conn_t *pConn = nullptr;
-
+struct student {
+    int32_t id;
+    int32_t age;
+    int32_t name;
+    int32_t sex;
+};
 // 基准测试类
 class CDF_DBBenchmark : public benchmark::Fixture {
 public:
@@ -21,7 +27,7 @@ public:
             xdb_res_t *pRes;
             xdb_row_t *pRow;
 
-            pConn = xdb_open("school");
+            pConn = xdb_open(":memory:");
             XDB_CHECK(NULL != pConn, printf ("failed to create DB\n"); return);
 
             // Create Table
@@ -63,16 +69,69 @@ public:
 };
 
 
-BENCHMARK_DEFINE_F(CDF_DBBenchmark, InsertBenchmark)(benchmark::State &state) {
-    xdb_stmt_t *pStmt = xdb_stmt_prepare (pConn, "INSERT INTO student (id,name,age,sex) VALUES (?,?,?,?)");
+BENCHMARK_DEFINE_F(CDF_DBBenchmark, PreparedInsertBenchmark)(benchmark::State &state) {
+
     xdb_res_t *pRes;
+
     for (auto _: state) {
+        xdb_stmt_t *pStmt = xdb_stmt_prepare (pConn, "INSERT INTO student (id,name,age,sex) VALUES (?,?,?,?)");
         id++;
         pRes = xdb_stmt_bexec (pStmt, id, id, id, id);
         XDB_RESCHK(pRes, printf ("Can't insert data\n"););
         xdb_free_result (pRes);
+        xdb_stmt_close (pStmt);
+    }
+
+    state.SetItemsProcessed(state.iterations());
+}
+
+
+BENCHMARK_DEFINE_F(CDF_DBBenchmark, PreparedBatchInsertBenchmark)(benchmark::State &state) {
+
+    xdb_res_t *pRes;
+    xdb_stmt_t *pStmt = xdb_stmt_prepare (pConn, "INSERT INTO student (id,name,age,sex) VALUES (?,?,?,?)");
+    for (auto _: state) {
+
+        id++;
+        pRes = xdb_stmt_bexec (pStmt, id, id, id, id);
+        XDB_RESCHK(pRes, printf ("Can't insert data\n"););
+        xdb_free_result (pRes);
+
     }
     xdb_stmt_close (pStmt);
+    state.SetItemsProcessed(state.iterations());
+}
+
+BENCHMARK_DEFINE_F(CDF_DBBenchmark, InsertNorBenchmark)(benchmark::State &state) {
+    // xdb_stmt_t *pStmt = xdb_stmt_prepare (pConn, "INSERT INTO student (id,name,age,sex) VALUES (?,?,?,?)");
+    xdb_res_t *pRes;
+    for (auto _: state) {
+        id++;
+        // pRes = xdb_stmt_bexec (pStmt, id, id, id, id);
+        char buffer[100];
+        char name[] = "world";
+        sprintf(buffer, "INSERT INTO student (id,name,age,sex) VALUES (%d,%d,%d,%d)", id, id, id, id);
+        pRes = xdb_exec(pConn, buffer);
+        XDB_RESCHK(pRes, printf ("Can't insert data\n"););
+        xdb_free_result (pRes);
+    }
+    // xdb_stmt_close (pStmt);
+    state.SetItemsProcessed(state.iterations());
+}
+
+BENCHMARK_DEFINE_F(CDF_DBBenchmark, InsertSelfSTMTBenchmark)(benchmark::State &state) {
+    // xdb_stmt_t *pStmt = xdb_stmt_prepare (pConn, "INSERT INTO student (id,name,age,sex) VALUES (?,?,?,?)");
+    xdb_res_t *pRes;
+    for (auto _: state) {
+        id++;
+        // pRes = xdb_stmt_bexec (pStmt, id, id, id, id);
+        student data = {id,id,id,id};
+        void * arr [] = {&data};
+        pRes = cdf_insert_data(pConn, "student", 1, arr);
+        XDB_RESCHK(pRes, printf ("Can't insert data\n"););
+        xdb_free_result (pRes);
+    }
+    // xdb_stmt_close (pStmt);
     state.SetItemsProcessed(state.iterations());
 }
 
@@ -120,9 +179,14 @@ BENCHMARK_DEFINE_F(CDF_DBBenchmark, selectRange)(benchmark::State &state) {
 }
 
 
- BENCHMARK_REGISTER_F(CDF_DBBenchmark, InsertBenchmark)
+ BENCHMARK_REGISTER_F(CDF_DBBenchmark, PreparedInsertBenchmark)
  ->Iterations(100000)->Threads(1)->Repetitions(10);
-
+BENCHMARK_REGISTER_F(CDF_DBBenchmark, InsertNorBenchmark)
+->Iterations(100000)->Threads(1)->Repetitions(10);
+BENCHMARK_REGISTER_F(CDF_DBBenchmark, PreparedBatchInsertBenchmark)
+->Iterations(100000)->Threads(1)->Repetitions(10);
+BENCHMARK_REGISTER_F(CDF_DBBenchmark, InsertSelfSTMTBenchmark)
+->Iterations(100000)->Threads(1)->Repetitions(10);
 BENCHMARK_REGISTER_F(CDF_DBBenchmark, selectEQ)
 ->Iterations(100000)->Threads(1)->Repetitions(10);
 

@@ -39,11 +39,15 @@ int main (int argc, char **argv)
 
 	//Insert by self stmt
 	student data = {10,"jack1",100,"3-11",90, "I am a student."};
-	void * arr [] = {&data};
-	cdf_insert_data(pConn, "student", 1, arr);
+	student data1 = {20,"jack1",1000,"3-11",90, "I am a student."};
+	student data3 = {30,"jack1",2000,"3-11",90, "I am a student."};
+	student data4 = {40,"jack1",3000,"3-11",90, "I am a student."};
+	student data5 = {50,"jack1",4000,"3-11",90, "I am a student."};
+	void * arr [] = {&data, &data1, &data3, &data4, &data5};
+	cdf_insert_data(pConn, "student", 5, arr);
 
 	//select after self insert
-	pRes = xdb_exec (pConn, "SELECT * from student  where age = 100");
+	pRes = xdb_exec (pConn, "SELECT * from student  where age >= 100");
 	printf ("=== Select self rows all %d rows\n", (int)pRes->row_count);
 	while (NULL != (pRow = xdb_fetch_row (pRes))) {
 		xdb_print_row (pRes->col_meta, pRow, 0);
@@ -54,9 +58,9 @@ int main (int argc, char **argv)
 
 
 	//select by self stmt
-	cdf_filter_t filter = {"age", XDB_TOK_NUM,  CDF_OP_EQ, {"100", 3}};
+	cdf_filter_t filter = {"age", XDB_TOK_NUM,  CDF_OP_GE, {"100", 3}};
 	cdf_filter_t * filterArr1 [] = {&filter};
-	pRes = cdf_select_data(pConn, "student", 1, filterArr1);
+	pRes = cdf_select_data(pConn, "student", 1, (void**)filterArr1);
 	while (NULL != (pRow = xdb_fetch_row (pRes))) {
 		xdb_print_row (pRes->col_meta, pRow, 0);
 		printf ("\n");
