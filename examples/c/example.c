@@ -68,6 +68,27 @@ int main (int argc, char **argv)
 	}
 	xdb_free_result (pRes);
 
+    //update byselfSTMT
+    cdf_filter_t updateFilter = {"age", XDB_TOK_NUM,  CDF_OP_EQ, {"100", 3}};
+    cdf_filter_t * updateFilterArr [] = {&updateFilter};
+    cdf_set_col_t updateSet = {"age", XDB_TOK_NUM, {"111", 3}};
+    cdf_set_col_t * updateSetArr [] = {&updateSet};
+    cdf_update_data(pConn, "student", 1, (void**)updateFilterArr, 1, (void**)updateSetArr);
+
+
+    //select after update
+    pRes = cdf_select_data(pConn, "student", 1, (void**)filterArr1);
+    printf ("=== Select after update %d rows\n", (int)pRes->row_count);
+    while (NULL != (pRow = xdb_fetch_row (pRes))) {
+
+        xdb_print_row (pRes->col_meta, pRow, 0);
+        printf ("\n");
+        printf ("=== Select after update age=== %s \n", ((student*)pRow[0])->name);
+    }
+    xdb_free_result (pRes);
+
+
+
 	// Insert
 	pRes = xdb_exec (pConn, "INSERT INTO student (id,name,age,class,score) VALUES (1,'jack',10,'3-1',90),(2,'tom',11,'2-5',91),(3,'jack',11,'1-6',92),(4,'rose',10,'4-2',90),(5,'tim',10,'3-1',95)");
 	XDB_RESCHK(pRes, printf ("Can't insert table student\n"); goto error;);

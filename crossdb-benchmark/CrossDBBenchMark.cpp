@@ -136,6 +136,31 @@ BENCHMARK_DEFINE_F(CDF_DBBenchmark, InsertSelfSTMTBenchmark)(benchmark::State &s
 }
 
 
+BENCHMARK_DEFINE_F(CDF_DBBenchmark, selectSTMTEQ)(benchmark::State &state) {
+    // xdb_stmt_t *pStmt = xdb_stmt_prepare (pConn, "SELECT * FROM student WHERE id=?");
+    xdb_res_t *pRes;
+    xdb_row_t *pRow;
+
+    id = 0;
+
+    for (auto _: state) {
+        id++;
+        std::string s1("id");
+
+        cdf_filter_t filter = {(char*)s1.c_str(), XDB_TOK_NUM,  CDF_OP_EQ, {(char*)std::to_string(20).c_str(), 2}};
+        cdf_filter_t * filterArr1 [] = {&filter};
+        pRes = cdf_select_data(pConn, "student", 1, (void**)filterArr1);
+        // pRes = xdb_stmt_bexec (pStmt, id);
+        // pRow = xdb_fetch_row (pRes);
+        xdb_free_result (pRes);
+        // xdb_print_row (pRes->col_meta, pRow, 0);
+        // printf ("\n");
+
+    }
+    // xdb_stmt_close (pStmt);
+    state.SetItemsProcessed(state.iterations());
+}
+
 BENCHMARK_DEFINE_F(CDF_DBBenchmark, selectEQ)(benchmark::State &state) {
     xdb_stmt_t *pStmt = xdb_stmt_prepare (pConn, "SELECT * FROM student WHERE id=?");
     xdb_res_t *pRes;
@@ -188,6 +213,8 @@ BENCHMARK_REGISTER_F(CDF_DBBenchmark, PreparedBatchInsertBenchmark)
 BENCHMARK_REGISTER_F(CDF_DBBenchmark, InsertSelfSTMTBenchmark)
 ->Iterations(100000)->Threads(1)->Repetitions(10);
 BENCHMARK_REGISTER_F(CDF_DBBenchmark, selectEQ)
+->Iterations(100000)->Threads(1)->Repetitions(10);
+BENCHMARK_REGISTER_F(CDF_DBBenchmark, selectSTMTEQ)
 ->Iterations(100000)->Threads(1)->Repetitions(10);
 
 

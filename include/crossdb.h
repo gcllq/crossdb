@@ -52,6 +52,13 @@ typedef struct cdf_filter_t {
 	cdf_op_t op;
 	cdf_str_t val;
 } cdf_filter_t;
+
+typedef struct cdf_set_col_t {
+    char *fidldName;
+    xdb_token_type type;
+    cdf_str_t val;
+}cdf_set_col_t;
+
 typedef enum {
 	XDB_OK,
 	XDB_ERROR,
@@ -214,6 +221,9 @@ xdb_curdb (xdb_conn_t* pConn);
 
 xdb_res_t *
 cdf_insert_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr);
+
+xdb_res_t *
+cdf_update_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr, int colCount, void **colArr);
 
 xdb_res_t *
 cdf_exec_by_stmt(xdb_stmt_t *stmt);

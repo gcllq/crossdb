@@ -343,6 +343,12 @@ cdf_insert_data(xdb_conn_t *pConn, const char *tblName, int count, void**dataArr
 }
 
 xdb_res_t *
+cdf_update_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr, int colCount, void **colArr) {
+    xdb_stmt_t *stmt = cdf_parse_stmt_create(pConn, UPDATE_ROW, tblName, count, dataArr, colCount, colArr);
+    return cdf_exec_by_stmt(stmt);
+}
+
+xdb_res_t *
 cdf_select_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr) {
 	xdb_stmt_t *stmt = cdf_parse_stmt_create(pConn, SELECT_ROW, tblName, count, dataArr);
 	return cdf_exec_by_stmt(stmt);
