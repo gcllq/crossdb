@@ -49,14 +49,14 @@ int main(int argc, char **argv) {
     printf("query data\n");
     cdf_filter_t filter = {"age", XDB_TOK_NUM,  CDF_OP_EQ, {"1000", 4}};
     cdf_filter_t * filterArr1 [] = {&filter};
-    int rowIdListNew[2] = {};
-    cdf_idx_select(tablePtr, "age", 1, filterArr1, rowIdListNew);
+    int *rowIdListNew;
+    cdf_idx_select(tablePtr, "age", 1, filterArr1, &rowIdListNew);
     printf("query result: %d, %d\n", rowIdListNew[0], rowIdListNew[1]);
 
     printf("select by pk data\n");
     cdf_filter_t pkFilter = {"id", XDB_TOK_NUM,  CDF_OP_EQ, {"10", 2}};
     cdf_filter_t * pkFilterArr [] = {&pkFilter};
-    int pkRowIdList[2] = {};
-    cdf_pk_idx_select(tablePtr, 1, pkFilterArr, pkRowIdList);
+    int *pkRowIdList;
+    cdf_pk_idx_select(tablePtr, pkFilterArr, &pkRowIdList);
     printf("pk query result: %d\n", pkRowIdList[0]);
 }

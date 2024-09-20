@@ -26,12 +26,13 @@ cdf_pk_idx_insert (xdb_tblm_t *pTblm, uint64_t rid, void *pRow) {
 }
 
 int
-cdf_pk_idx_select(xdb_tblm_t *pTblm, int filterCount, cdf_filter_t **filterArr, int *rowIdList) {
-    return cdf_idx_select(pTblm, "PRIMARY", filterCount, filterArr, rowIdList);
+cdf_pk_idx_select(xdb_tblm_t *pTblm, cdf_filter_t **filterArr, int **rowIdList) {
+
+    return cdf_idx_select(pTblm, "PRIMARY", 1, filterArr, rowIdList);
 }
 
 int
-cdf_idx_select(xdb_tblm_t *pTblm, char *idxName, int filterCount, cdf_filter_t **filterArr, int *rowIdList) {
+cdf_idx_select(xdb_tblm_t *pTblm, char *idxName, int filterCount, cdf_filter_t **filterArr, int **rowIdList) {
     //首先构造xdb_filter
     xdb_stmt_select_t pStmt = {};
     xdb_init_where_stmt(&pStmt);
@@ -48,8 +49,11 @@ cdf_idx_select(xdb_tblm_t *pTblm, char *idxName, int filterCount, cdf_filter_t *
     } else {
         return -1;
     }
+
+
+    *rowIdList = (int*)malloc(pRowSet.count * sizeof(int));;
     for (int i = 0; i < pRowSet.count; ++i) {
-        rowIdList[i] = pRowSet.pRowList[i].rid;
+        *rowIdList[i] = pRowSet.pRowList[i].rid;
     }
     return 0;
 }

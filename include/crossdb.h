@@ -254,10 +254,11 @@ int
 cdf_pk_idx_insert (xdb_tblm_t *pTblm, uint64_t rid, void *pRow);
 
 int
-cdf_pk_idx_select(xdb_tblm_t *pTblm,  int filterCount, cdf_filter_t **filterArr, int *rowIdList);
+cdf_pk_idx_select(xdb_tblm_t *pTblm, cdf_filter_t **filterArr, int **rowIdList);
+
 
 int
-cdf_idx_select(xdb_tblm_t *pTblm,char *idxName, int filterCount, cdf_filter_t **filterArr, int *rowIdList);
+cdf_idx_select(xdb_tblm_t *pTblm,char *idxName, int filterCount, cdf_filter_t **filterArr, int **rowIdList);
 
 xdb_res_t *
 cdf_delete_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr);
