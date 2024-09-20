@@ -101,7 +101,7 @@ cdf_insert_stmt(xdb_conn_t *pConn, bool bPStmt, char *tableName, int count, void
 }
 
 XDB_STATIC int
-cdf_parse_where(xdb_conn_t *pConn, xdb_stmt_select_t *pStmt, int count, cdf_filter_t **cdf_filter_arr) {
+cdf_parse_where(xdb_stmt_select_t *pStmt, int count, cdf_filter_t **cdf_filter_arr) {
     uint8_t bmp[8];
     xdb_tblm_t *pTblm = pStmt->pTblm;
     memset(bmp, 0, sizeof(bmp));
@@ -279,7 +279,7 @@ cdf_parse_update(xdb_conn_t *pConn, bool bPStmt, char *tableName, int filterCoun
     //替换成自己的
     type = cdf_parse_setcol(pStmt, colCount, colArr);
 
-    cdf_parse_where(pConn, pStmt, filterCount, arr);
+    cdf_parse_where(pStmt, filterCount, arr);
 
     return (xdb_stmt_t *) pStmt;
 
@@ -325,7 +325,7 @@ cdf_select_stmt(xdb_conn_t *pConn, bool bPStmt, char *tableName, va_list ap) {
     //处理where条件
     int count = va_arg(ap, int);
     cdf_filter_t **arr = va_arg(ap, cdf_filter_t **);
-    int parse_where = cdf_parse_where(pConn, pStmt, count, arr);
+    int parse_where = cdf_parse_where( pStmt, count, arr);
     if (parse_where != 0) {
         printf("parse where error\n");
     }
@@ -365,7 +365,7 @@ cdf_delete_stmt(xdb_conn_t *pConn, bool bPStmt, char *tableName, int count, cdf_
                     XDB_OBJ_NAME(pStmt->pTblm));
     }
 
-    int parse_where = cdf_parse_where(pConn, pStmt, count, arr);
+    int parse_where = cdf_parse_where(pStmt, count, arr);
     if (parse_where != 0) {
         printf("parse where error\n");
     }

@@ -118,7 +118,7 @@ xdb_hash_rehash (xdb_idxm_t *pIdxm, xdb_rowid old_max)
 }
 
 XDB_STATIC int 
-xdb_hash_add (xdb_conn_t *pConn, xdb_idxm_t* pIdxm, xdb_rowid new_rid, void *pRow)
+xdb_hash_add (xdb_idxm_t* pIdxm, xdb_rowid new_rid, void *pRow)
 {
 	xdb_stgmgr_t	*pStgMgr	= &pIdxm->pTblm->stg_mgr;
 
@@ -174,9 +174,9 @@ xdb_hash_add (xdb_conn_t *pConn, xdb_idxm_t* pIdxm, xdb_rowid new_rid, void *pRo
 			void *pRowDb = XDB_IDPTR(pStgMgr, rid);
 			bool eq = xdb_row_isequal2 (pRow, pRowDb, pIdxm->pFields, pIdxm->fld_count);
 			if (eq) {
-				if (pIdxm->bUnique && xdb_row_valid (pConn, pIdxm->pTblm, pRowDb, rid)) {
-					goto error;
-				}
+//				if (pIdxm->bUnique && xdb_row_valid (pConn, pIdxm->pTblm, pRowDb, rid)) {
+//					goto error;
+//				}
 				break;
 			}
 		}
@@ -185,9 +185,9 @@ xdb_hash_add (xdb_conn_t *pConn, xdb_idxm_t* pIdxm, xdb_rowid new_rid, void *pRo
 				for (sid = pTopNode->sibling; sid > 0; sid = pSibNode->next) {
 					pSibNode = &pHashNode[sid];
 					void *pRowDb = XDB_IDPTR(pStgMgr, sid);
-					if (xdb_likely (xdb_row_valid (pConn, pIdxm->pTblm, pRowDb, sid))) {
-						goto error;
-					}
+//					if (xdb_likely (xdb_row_valid (pConn, pIdxm->pTblm, pRowDb, sid))) {
+//						goto error;
+//					}
 				}
 			}
 
@@ -224,7 +224,7 @@ xdb_hash_add (xdb_conn_t *pConn, xdb_idxm_t* pIdxm, xdb_rowid new_rid, void *pRo
 	return 0;
 
 error:
-	XDB_SETERR(XDB_E_EXISTS, "Duplicate insert for index '%s'", XDB_OBJ_NAME(pIdxm));
+//	XDB_SETERR(XDB_E_EXISTS, "Duplicate insert for index '%s'", XDB_OBJ_NAME(pIdxm));
 	return -XDB_E_EXISTS;
 }
 
@@ -326,7 +326,7 @@ XDB_STATIC int xdb_hash_rem (xdb_idxm_t* pIdxm, xdb_rowid rid, void *pRow)
 }
 
 XDB_STATIC xdb_rowid 
-xdb_hash_query (xdb_conn_t *pConn, xdb_idxm_t* pIdxm, xdb_value_t **ppValue, xdb_filter_t **ppFilter, int count, xdb_rowset_t *pRowSet)
+xdb_hash_query (xdb_idxm_t* pIdxm, xdb_value_t **ppValue, xdb_filter_t **ppFilter, int count, xdb_rowset_t *pRowSet)
 {
 	uint32_t hash_val = xdb_val_hash (ppValue, pIdxm->fld_count);
 	uint32_t slot_id = hash_val & pIdxm->slot_mask;
@@ -357,26 +357,26 @@ xdb_hash_query (xdb_conn_t *pConn, xdb_idxm_t* pIdxm, xdb_value_t **ppValue, xdb
 		if (xdb_unlikely (! xdb_row_isequal (pRow, pIdxm->pFields, ppValue, pIdxm->fld_count))) {
 			continue;
 		}
-		if (xdb_likely (xdb_row_valid (pConn, pIdxm->pTblm, pRow, rid))) {
+//		if (xdb_likely (xdb_row_valid (pConn, pIdxm->pTblm, pRow, rid))) {
 			// Compare rest fields
 	 		if ((0 == count) || xdb_row_and_match (pRow, ppFilter, count)) {
 				if (xdb_unlikely (-XDB_E_FULL == xdb_rowset_add (pRowSet, rid, pRow))) {
 					return XDB_OK;
 				}
 			}
-		}
+//		}
 
 		for (rid = pCurNode->sibling; rid > 0; rid = pCurNode->next) {
 			pCurNode = &pHashNode[rid];
 			pRow = XDB_IDPTR(pStgMgr, rid);
-			if (xdb_likely (xdb_row_valid (pConn, pIdxm->pTblm, pRow, rid))) {
+//			if (xdb_likely (xdb_row_valid (pConn, pIdxm->pTblm, pRow, rid))) {
 				// Compare rest fields
 				if ((0 == count) || xdb_row_and_match (pRow, ppFilter, count)) {
 					if (xdb_unlikely (-XDB_E_FULL == xdb_rowset_add (pRowSet, rid, pRow))) {
 						return XDB_OK;
 					}
 				}
-			}
+//			}
 		}
 
 		return XDB_OK;

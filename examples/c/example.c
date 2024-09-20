@@ -140,7 +140,7 @@ int main (int argc, char **argv)
 	// pRes = xdb_exec (pConn, "DELETE FROM student WHERE id = 3");
 	cdf_filter_t delFilter = {"id", XDB_TOK_NUM,  CDF_OP_EQ, {"3", 1}};
 	cdf_filter_t * delArr [] = {&delFilter};
-	pRes = cdf_delete_data(pConn, "student", 1, delArr);
+	pRes = cdf_delete_data(pConn, "student", 1, (void**)delArr);
 	XDB_RESCHK(pRes, printf ("Can't delete id=%d\n",3); goto error;);
 
 	pRes = xdb_exec (pConn, "SELECT * from student WHERE id = 3");

@@ -133,6 +133,11 @@ typedef uint64_t xdb_row_t;	// xdb_rowdat_t
 
 #define XDB_ROW_COL_CNT		4096
 
+typedef struct cdf_row_id_list_t{
+    int count;
+    int **row_id_list;
+}cdf_row_id_list_t;
+
 typedef struct {
 	uint32_t	rl_count;
 	uint32_t	rl_curid;
@@ -191,7 +196,8 @@ typedef struct {
 typedef struct xdb_conn_t xdb_conn_t;
 
 typedef struct xdb_stmt_t xdb_stmt_t;
-
+typedef struct xdb_tblm_t xdb_tblm_t;
+typedef struct xdb_dbm_t xdb_dbm_t;
 
 /**************************************
  Connection
@@ -228,8 +234,21 @@ cdf_update_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataAr
 xdb_res_t *
 cdf_exec_by_stmt(xdb_stmt_t *stmt);
 
+
 xdb_res_t *
 cdf_select_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr);
+
+int cdf_find_dbm_ptr(xdb_conn_t *pConn, xdb_dbm_t ** dbmPtr);
+
+int cdf_find_table_ptr(char * tableName, xdb_dbm_t* dbm, xdb_tblm_t **pTblm);
+
+int cdf_insert_data_row(xdb_tblm_t *pTblm, int count, void **pRows, int *rowIdList);
+
+int
+cdf_idx_addRow (xdb_tblm_t *pTblm, uint64_t rid, void *pRow);
+
+int
+cdf_idx_select(xdb_tblm_t *pTblm,char *idxName, int filterCount, cdf_filter_t **filterArr, int *rowIdList);
 
 xdb_res_t *
 cdf_delete_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr);

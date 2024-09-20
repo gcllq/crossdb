@@ -13,9 +13,9 @@
 #define __XDB_INDX_H__
 
 typedef struct {
-	int (*idx_add) (xdb_conn_t *pConn, struct xdb_idxm_t* pIdxm, xdb_rowid new_rid, void *pRow);
+	int (*idx_add) (struct xdb_idxm_t* pIdxm, xdb_rowid new_rid, void *pRow);
 	int (*idx_rem) (struct xdb_idxm_t* pIdxm, xdb_rowid rid, void *pRow);
-	xdb_rowid (*idx_query) (xdb_conn_t *pConn, struct xdb_idxm_t* pIdxm, xdb_value_t **ppValue, xdb_filter_t **ppFilter, int count, xdb_rowset_t *pRowSet);
+	xdb_rowid (*idx_query) (struct xdb_idxm_t* pIdxm, xdb_value_t **ppValue, xdb_filter_t **ppFilter, int count, xdb_rowset_t *pRowSet);
 	int (*idx_create) (struct xdb_idxm_t *pIdxm);
 	int (*idx_close) (struct xdb_idxm_t* pIdxm);
 	int (*idx_drop) (struct xdb_idxm_t* pIdxm);

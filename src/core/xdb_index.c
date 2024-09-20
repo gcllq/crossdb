@@ -21,7 +21,7 @@ xdb_idx_addRow (xdb_conn_t *pConn, xdb_tblm_t *pTblm, xdb_rowid rid, void *pRow)
 	int rc;
 	for (int i = 0; i < XDB_OBJM_COUNT(pTblm->idx_objm); ++i) {
 		xdb_idxm_t *pIdxm = XDB_OBJM_GET(pTblm->idx_objm, pTblm->idx_order[i]);
-		rc = pIdxm->pIdxOps->idx_add (pConn, pIdxm, rid, pRow);
+		rc = pIdxm->pIdxOps->idx_add (pIdxm, rid, pRow);
 		if (xdb_unlikely (rc != XDB_OK)) {
 			// recover added index
 			for (int j = 0; j < i; ++j) {
@@ -40,7 +40,7 @@ xdb_idx_addRow_bmp (xdb_conn_t *pConn, xdb_tblm_t *pTblm, xdb_rowid rid, void *p
 	int rc;
 	for (int i = 0; i < count; ++i) {
 		xdb_idxm_t *pIdxm = XDB_OBJM_GET(pTblm->idx_objm, idx_del[i]);
-		rc = pIdxm->pIdxOps->idx_add (pConn, pIdxm, rid, pRow);
+		rc = pIdxm->pIdxOps->idx_add (pIdxm, rid, pRow);
 		if (xdb_unlikely (rc != XDB_OK)) {
 			// recover added index
 			for (int j = 0; j < i; ++j) {
@@ -148,7 +148,7 @@ xdb_create_index (xdb_stmt_idx_t *pStmt, bool bCreateTbl)
 		for (xdb_rowid rid = 1; rid <= max_rid; ++rid) {
 			void *pRow = XDB_IDPTR(pStgMgr, rid);
 			if (xdb_row_valid (pConn, pTblm, pRow, rid)) {
-				pIdxm->pIdxOps->idx_add (pConn, pIdxm, rid, pRow);
+				pIdxm->pIdxOps->idx_add (pIdxm, rid, pRow);
 			}
 		}
 		if (!bCreateTbl) {

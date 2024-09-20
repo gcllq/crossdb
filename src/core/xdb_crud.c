@@ -1110,7 +1110,7 @@ xdb_sql_filter (xdb_stmt_select_t *pStmt)
 	}
 
 	if (pStmt->filter_count > 0 && (NULL != pStmt->pIdxm)) {
-		pStmt->pIdxm->pIdxOps->idx_query (pConn, pStmt->pIdxm, pStmt->pIdxVals, pStmt->pIdxFlts, pStmt->idx_flt_cnt, pRowSet);
+		pStmt->pIdxm->pIdxOps->idx_query (pStmt->pIdxm, pStmt->pIdxVals, pStmt->pIdxFlts, pStmt->idx_flt_cnt, pRowSet);
 	} else {
 		xdb_rowid max_rid = XDB_STG_MAXID(pStgMgr);
 		for (xdb_rowid rid = 1; rid <= max_rid; ++rid) {
