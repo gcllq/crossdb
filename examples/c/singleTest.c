@@ -41,13 +41,22 @@ int main(int argc, char **argv) {
     printf("insert rowIdList: %d, %d\n", rowIdList[0], rowIdList[1]);
 
     printf("add index\n");
-    cdf_idx_addRow(tablePtr, rowIdList[0], &data);
-    cdf_idx_addRow(tablePtr, rowIdList[1], &data1);
+//    cdf_idx_insert_all(tablePtr, rowIdList[0], &data);
+//    cdf_idx_insert_all(tablePtr, rowIdList[1], &data1);
+    cdf_idx_insert_one(tablePtr, "age",rowIdList[0], &data);
+    cdf_idx_insert_one(tablePtr, "age",rowIdList[1], &data1);
 
     printf("query data\n");
-    cdf_filter_t filter = {"age", XDB_TOK_NUM,  CDF_OP_EQ, {"2000", 4}};
+    cdf_filter_t filter = {"age", XDB_TOK_NUM,  CDF_OP_EQ, {"1000", 4}};
     cdf_filter_t * filterArr1 [] = {&filter};
     int rowIdListNew[2] = {};
     cdf_idx_select(tablePtr, "age", 1, filterArr1, rowIdListNew);
     printf("query result: %d, %d\n", rowIdListNew[0], rowIdListNew[1]);
+
+    printf("select by pk data\n");
+    cdf_filter_t pkFilter = {"id", XDB_TOK_NUM,  CDF_OP_EQ, {"10", 2}};
+    cdf_filter_t * pkFilterArr [] = {&pkFilter};
+    int pkRowIdList[2] = {};
+    cdf_pk_idx_select(tablePtr, 1, pkFilterArr, pkRowIdList);
+    printf("pk query result: %d\n", pkRowIdList[0]);
 }

@@ -196,7 +196,7 @@ xdb_parse_create_table (xdb_conn_t* pConn, xdb_token_t *pTkn)
 			}
 			rc = xdb_parse_create_idx_def (pConn, pTkn, pStmtIdx);
 			if ((NULL == pStmtIdx->idx_name) && (pStmtIdx->fld_count > 0)) {
-				xdb_sprintf (pStmtIdx->idxName, "%s_%d", pStmtIdx->idx_col[0], pStmt->idx_count);
+				xdb_sprintf (pStmtIdx->idxName, "%s", pStmtIdx->idx_col[0]);
 				pStmtIdx->idx_name = pStmtIdx->idxName;
 			}
 		} else {

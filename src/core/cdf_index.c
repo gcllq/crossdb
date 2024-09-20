@@ -1,9 +1,33 @@
 //
 // Created by Administrator on 2024/9/20.
 //
+
 int
-cdf_idx_addRow(xdb_tblm_t *pTblm, uint64_t rid, void *pRow) {
+cdf_idx_insert_all (xdb_tblm_t *pTblm, uint64_t rid, void *pRow) {
     return xdb_idx_addRow(NULL, pTblm, (xdb_rowid) rid, pRow);
+}
+
+
+int
+cdf_idx_insert_one(xdb_tblm_t *pTblm, char *idxName, uint64_t rid, void *pRow) {
+    int rc = 0;
+    xdb_idxm_t *pIdxm = xdb_find_index(pTblm, idxName);
+    rc = pIdxm->pIdxOps->idx_add (pIdxm, rid, pRow);
+    if (xdb_unlikely (rc != XDB_OK)) {
+        // recover added index
+        return rc;
+    }
+    return rc;
+}
+
+int
+cdf_pk_idx_insert (xdb_tblm_t *pTblm, uint64_t rid, void *pRow) {
+    return cdf_idx_insert_one(pTblm, "PRIMARY", rid, pRow);
+}
+
+int
+cdf_pk_idx_select(xdb_tblm_t *pTblm, int filterCount, cdf_filter_t **filterArr, int *rowIdList) {
+    return cdf_idx_select(pTblm, "PRIMARY", filterCount, filterArr, rowIdList);
 }
 
 int
@@ -17,10 +41,10 @@ cdf_idx_select(xdb_tblm_t *pTblm, char *idxName, int filterCount, cdf_filter_t *
     //调用索引查询
     xdb_idxm_t *pIdxm = xdb_find_index(pTblm, idxName);
 
-    xdb_rowset_t pRowSet;
+    xdb_rowset_t pRowSet = {};
     if (pStmt.filter_count > 0 && (NULL != pStmt.pIdxm)) {
-        pStmt.pIdxm->pIdxOps->idx_query(pStmt.pIdxm, pStmt.pIdxVals, pStmt.pIdxFlts, pStmt.idx_flt_cnt,
-                                        &pRowSet);
+        pIdxm->pIdxOps->idx_query(pStmt.pIdxm, pStmt.pIdxVals, pStmt.pIdxFlts, pStmt.idx_flt_cnt,
+                                  &pRowSet);
     } else {
         return -1;
     }

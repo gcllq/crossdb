@@ -245,7 +245,16 @@ int cdf_find_table_ptr(char * tableName, xdb_dbm_t* dbm, xdb_tblm_t **pTblm);
 int cdf_insert_data_row(xdb_tblm_t *pTblm, int count, void **pRows, int *rowIdList);
 
 int
-cdf_idx_addRow (xdb_tblm_t *pTblm, uint64_t rid, void *pRow);
+cdf_idx_insert_all (xdb_tblm_t *pTblm, uint64_t rid, void *pRow);
+
+int
+cdf_idx_insert_one (xdb_tblm_t *pTblm, char*idxName, uint64_t rid, void *pRow);
+
+int
+cdf_pk_idx_insert (xdb_tblm_t *pTblm, uint64_t rid, void *pRow);
+
+int
+cdf_pk_idx_select(xdb_tblm_t *pTblm,  int filterCount, cdf_filter_t **filterArr, int *rowIdList);
 
 int
 cdf_idx_select(xdb_tblm_t *pTblm,char *idxName, int filterCount, cdf_filter_t **filterArr, int *rowIdList);
