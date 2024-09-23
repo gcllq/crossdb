@@ -32,6 +32,29 @@ cdf_pk_idx_select(xdb_tblm_t *pTblm, cdf_filter_t **filterArr, int **rowIdList) 
 }
 
 int
+cdf_pk_idx_select_equal(xdb_tblm_t *pTblm, cdf_filter_t *filter, int *rowId) {
+    xdb_stmt_select_t pStmt = {};
+    xdb_init_where_stmt(&pStmt);
+    pStmt.pTblm = pTblm;
+    cdf_parse_where(&pStmt, 1, &filter);
+
+    //调用索引查询
+    xdb_idxm_t *pIdxm = xdb_find_index(pTblm, "PRIMARY");
+
+    xdb_rowset_t pRowSet = {};
+    if (pStmt.filter_count > 0 && (NULL != pStmt.pIdxm)) {
+        pIdxm->pIdxOps->idx_query(pStmt.pIdxm, pStmt.pIdxVals, pStmt.pIdxFlts, pStmt.idx_flt_cnt,
+                                  &pRowSet);
+    } else {
+        return -1;
+    }
+
+    *rowId = pRowSet.pRowList[0].rid;
+
+    return 0;
+}
+
+int
 cdf_idx_select(xdb_tblm_t *pTblm, char *idxName, int filterCount, cdf_filter_t **filterArr, int **rowIdList) {
     //首先构造xdb_filter
     xdb_stmt_select_t pStmt = {};

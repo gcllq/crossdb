@@ -54,9 +54,11 @@ int main(int argc, char **argv) {
     printf("query result: %d, %d\n", rowIdListNew[0], rowIdListNew[1]);
 
     printf("select by pk data\n");
-    cdf_filter_t pkFilter = {"id", XDB_TOK_NUM,  CDF_OP_EQ, {"10", 2}};
+    cdf_filter_t pkFilter = {"id", XDB_TOK_NUM,  CDF_OP_EQ, {"20", 2}};
     cdf_filter_t * pkFilterArr [] = {&pkFilter};
     int *pkRowIdList;
-    cdf_pk_idx_select(tablePtr, pkFilterArr, &pkRowIdList);
-    printf("pk query result: %d\n", pkRowIdList[0]);
+//    cdf_pk_idx_select(tablePtr, pkFilterArr, &pkRowIdList);
+    int rowId = 0;
+    cdf_pk_idx_select_equal(tablePtr, &pkFilter, &rowId);
+    printf("pk query result: %d\n", rowId);
 }
