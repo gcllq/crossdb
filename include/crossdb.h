@@ -262,6 +262,8 @@ cdf_pk_idx_select_equal(xdb_tblm_t *pTblm, cdf_filter_t *filter, int *rowId);
 int
 cdf_idx_select(xdb_tblm_t *pTblm,char *idxName, int filterCount, cdf_filter_t **filterArr, int **rowIdList);
 
+int cdf_row_ptr_select(xdb_tblm_t *pTblm, int rowId, void **pRow);
+
 xdb_res_t *
 cdf_delete_data(xdb_conn_t *pConn, const char *tblName, int count, void **dataArr);
 

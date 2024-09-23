@@ -60,5 +60,9 @@ int main(int argc, char **argv) {
 //    cdf_pk_idx_select(tablePtr, pkFilterArr, &pkRowIdList);
     int rowId = 0;
     cdf_pk_idx_select_equal(tablePtr, &pkFilter, &rowId);
+
+    student *pStudent = NULL;
+    cdf_row_ptr_select(tablePtr, rowId, (void**)&pStudent);
     printf("pk query result: %d\n", rowId);
+    printf("pk query result: %s\n", pStudent->name);
 }

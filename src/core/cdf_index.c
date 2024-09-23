@@ -80,3 +80,9 @@ cdf_idx_select(xdb_tblm_t *pTblm, char *idxName, int filterCount, cdf_filter_t *
     }
     return 0;
 }
+
+int cdf_row_ptr_select(xdb_tblm_t *pTblm, int rid, void **pRow) {
+    xdb_stgmgr_t	*pStgMgr = &pTblm->stg_mgr;
+    *pRow = XDB_IDPTR(pStgMgr, rid);
+    return 0;
+}
